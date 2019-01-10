@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t tcharlyson/multi-docker -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run tcharlyson/multi-docker npm run test -- --coverage
+  
+after_success:
+  - docker build -t tcharlyson/multi-client ./client
+  - docker build -t tcharlyson/multi-nginx ./nginx
+  - docker build -t tcharlyson/multi-server ./server
+  - docker build -t tcharlyson/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push tcharlyson/multi-client
+  - docker push tcharlyson/multi-nginx
+  - docker push tcharlyson/multi-server
+  - docker push tcharlyson/multi-worker
